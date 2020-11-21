@@ -27,3 +27,8 @@
 .mediumWrapper {
   margin: 24px 0;
 }
+
+#theContentArticle {
+  width: 100%;
+  height: 100%;
+}
