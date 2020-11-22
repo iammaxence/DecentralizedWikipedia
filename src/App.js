@@ -1,9 +1,8 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Switch, Link, Route, Redirect } from 'react-router-dom'
 import * as Ethereum from './services/Ethereum'
 import styles from './App.module.css'
-import MediumEditor from 'medium-editor'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'medium-editor/dist/css/medium-editor.css'
 import 'medium-editor/dist/css/themes/default.css'
@@ -11,6 +10,7 @@ import ContractInterface from './build/contracts/Wikipedia.json'
 import Web3 from 'web3';
 
 
+// Précédemment utilisé
 const MonContratWiki = () => {
   if (window.ethereum) { // Check si le lien avec Metamask existe (Si notre navigateur est connecté à une blockchain)
     //console.log(Web3.givenProvider); // Crée un lien avec metamask. On peut aussi mettre l'adresse local si on a pas metamastk  : localhost:3000
@@ -29,7 +29,7 @@ const MonContratWiki = () => {
 
 const ArticleRechercher = ({ idArticle }) => {
 
-  const contract = useSelector(({contract}) => contract)
+  const contract = useSelector(({ contract }) => contract)
   const [myarticletitle, setTitle] = useState(null);
   const [myarticlecontent, setContent] = useState(null)
   let [updateMode, setUpdateMode] = useState(false)
@@ -41,15 +41,16 @@ const ArticleRechercher = ({ idArticle }) => {
         <h1>Aucun ID</h1>
         <div>
           <h4>Il ne faut pas entrer l'url à la main ಠ_ಠ </h4>
+          <small class="form-text text-muted">J'ai pas eu le temps de mettre en place de Route protéger...</small>
         </div>
       </div>
     )
   }
-  
+
   contract.methods.articleTitle(idArticle).call().then(setTitle)
   contract.methods.articleContent(idArticle).call().then(setContent)
 
-  if (myarticletitle == "" || myarticlecontent == "") {
+  if (myarticletitle === "" || myarticlecontent === "") {
     return (
       <div>
         <h1>ID invalide</h1>
@@ -66,18 +67,19 @@ const ArticleRechercher = ({ idArticle }) => {
     setUpdateMode(!updateMode)
   }
 
-  //Async/await => J'attend que la transaction ai lieu avant de re-render mon composant avec le setContent
+  // Async/await => J'attend que la transaction ai lieu avant de re-render mon composant avec le setContent
   async function validateUpdate() {
     let nouvelleValeur = document.getElementById("changeUpdate").value
-    await contract.methods.updateArticle(idArticle, nouvelleValeur).send(function(error, result) {
+    await contract.methods.updateArticle(idArticle, nouvelleValeur).send(function (error, result) {
       if (error) {
         console.log("Transaction denied by the user")
-      }});
+      }
+    });
     setUpdateMode(false)
     setContent(nouvelleValeur);
   }
 
-  if (updateMode == false) {
+  if (updateMode === false) {
     return (
       <div>
         <div>
@@ -86,6 +88,7 @@ const ArticleRechercher = ({ idArticle }) => {
         <div id="theContentArticle" onDoubleClick={updateContentArticle} >
           {myarticlecontent}
         </div>
+        <div><Link to="/article/all">go back</Link></div>
       </div>
     )
   }
@@ -110,41 +113,59 @@ const ArticleRechercher = ({ idArticle }) => {
 */
 const NewArticle = () => {
 
-  const contract = useSelector(({contract}) => contract)
-  function addArticle(e) {
+  const contract = useSelector(({ contract }) => contract)
+  let [ajoutArticle, setAjoutArticle] = useState(false)
+
+  async function addArticle(e) {
+
+    //Permet de ne pas rafraichir la page avant d'avoir executer la fonction
+    e.preventDefault();
     // On récupère le titre et le contenue du formulaire
     var title = document.getElementById("articleTitle");
     var contenue = document.getElementById("contentOfTheArticle");
 
-    // On récupère l'abi du resultat de notre fonctionn. On envoie le resultat dans une blockchain donc on la hash (= encodeABI)
-    var abi = contract.methods.addArticle(title.value, contenue.value).encodeABI();
-    //temporaire: C'est le client 1 qui fait la transaction. On veux que ce soit l'utilisateur courant
-    contract.methods.addArticle(title.value, contenue.value).send(function(error, result) {
+    //On crée un article : Pour crée un article, on effectue une transaction payante
+    await contract.methods.addArticle(title.value, contenue.value).send(function (error, result) {
       if (error) {
         console.log("Transaction denied by the user")
-      }});
+      }
+    });
+    setAjoutArticle(!ajoutArticle)
     console.log("Operation d'ajout est un succès");
+
     //Je vérifie que l'ajout à bien eu lieu en checkant toutes les ids de ma map
     contract.methods.getAllIds().call().then(console.log)
-    //Evite les erreurs 
-    e.preventDefault();
+    
   }
 
-  return (
-
-    <form onSubmit={addArticle}>
-      <div className="form-group">
-        <label htmlFor="TitleOfTheArticle">Titre de l'article</label>
-        <input type="text" className="form-control" id="articleTitle" placeholder="Entrez le titre de l'article" />
+  if (ajoutArticle) {
+    return (
+      <div>
+        <h2>L'article a été ajouté avec succès (•̀ᴗ•́)و ̑̑</h2>
+        <div><Link to="/">Home</Link></div>
       </div>
-      <div className="form-group">
-        <label htmlFor="contentOfTheArticle">Contenue de l'article</label>
-        <textarea className="form-control" id="contentOfTheArticle" placeholder="Il était une fois.." />
-      </div>
-      <button type="submit" className="btn btn-primary">Publier</button>
-    </form>
+    )
+  }
+  else {
 
-  )
+    return (
+
+      <form onSubmit={addArticle}>
+        <div className="form-group">
+          <label htmlFor="TitleOfTheArticle">Titre de l'article</label>
+          <input type="text" className="form-control" id="articleTitle" placeholder="Entrez le titre de l'article" />
+        </div>
+        <div className="form-group">
+          <label htmlFor="contentOfTheArticle">Contenue de l'article</label>
+          <textarea className="form-control" id="contentOfTheArticle" placeholder="Il était une fois.." />
+        </div>
+        <button type="submit" className="btn btn-primary">Publier</button>
+      </form>
+
+    )
+
+  }
+
 }
 
 
@@ -164,7 +185,7 @@ const Home = () => {
 const AllArticles = ({ sendDataToParent }) => {
 
 
-  const contract = useSelector(({contract}) => contract)
+  const contract = useSelector(({ contract }) => contract)
   const [selectArticleById, setId] = useState(false); //Si l'utilisateur à choisi de rechercher un article, on met à true
   let numId = document.getElementById("myid");
 
