@@ -2,7 +2,7 @@
 
 Implement a complete Wikipedia in a decentralized way, on Ethereum.
 
--Mode d'emploi :
+- Mode d'emploi :
 
 Add article:
 Permet d'ajouter un article en échange d'éther. On entre le titre de l'article, son contenue et on appuie sur le bouton "publier". Une demande de transaction d'ether s'ouvre (Avec metamask). On accepte la transaction pour publier l'article.
