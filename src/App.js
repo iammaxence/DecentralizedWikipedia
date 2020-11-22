@@ -70,13 +70,17 @@ const ArticleRechercher = ({ idArticle }) => {
   // Async/await => J'attend que la transaction ai lieu avant de re-render mon composant avec le setContent
   async function validateUpdate() {
     let nouvelleValeur = document.getElementById("changeUpdate").value
-    await contract.methods.updateArticle(idArticle, nouvelleValeur).send(function (error, result) {
-      if (error) {
-        console.log("Transaction denied by the user")
-      }
-    });
+    try{
+      await contract.methods.updateArticle(idArticle, nouvelleValeur).send((error, result) => {
+        if (error) {
+          console.log("Transaction denied by the user")
+        }
+      });
+    }catch (error){
+      console.log("Transaction rejected")
+    }
     setUpdateMode(false)
-    setContent(nouvelleValeur);
+    
   }
 
   if (updateMode === false) {
@@ -88,7 +92,6 @@ const ArticleRechercher = ({ idArticle }) => {
         <div id="theContentArticle" onDoubleClick={updateContentArticle} >
           {myarticlecontent}
         </div>
-        <div><Link to="/article/all">go back</Link></div>
       </div>
     )
   }
@@ -125,17 +128,21 @@ const NewArticle = () => {
     var contenue = document.getElementById("contentOfTheArticle");
 
     //On crée un article : Pour crée un article, on effectue une transaction payante
-    await contract.methods.addArticle(title.value, contenue.value).send(function (error, result) {
-      if (error) {
-        console.log("Transaction denied by the user")
-      }
-    });
-    setAjoutArticle(!ajoutArticle)
-    console.log("Operation d'ajout est un succès");
+    try{
+      await contract.methods.addArticle(title.value, contenue.value).send(function (error, result) {
+        if (error) {
+          console.log("Transaction denied by the user")
+        }
+      });
+      setAjoutArticle(!ajoutArticle)
+      console.log("Operation d'ajout est un succès");
+    }catch(error){
+      console.log("Transaction rejected")
+    }
 
     //Je vérifie que l'ajout à bien eu lieu en checkant toutes les ids de ma map
     contract.methods.getAllIds().call().then(console.log)
-    
+
   }
 
   if (ajoutArticle) {
@@ -183,7 +190,7 @@ const Home = () => {
 
 
 const AllArticles = ({ sendDataToParent }) => {
-
+  
 
   const contract = useSelector(({ contract }) => contract)
   const [selectArticleById, setId] = useState(false); //Si l'utilisateur à choisi de rechercher un article, on met à true
@@ -193,18 +200,21 @@ const AllArticles = ({ sendDataToParent }) => {
 
   useEffect(() => {
 
-    contract.methods.getAllIds().call().then((id) => {
-      const tab = []
-      id.map((x) => {
-        contract.methods.articleTitle(x).call().then((k, v) => {
+    
+    if (contract) {
+      contract.methods.getAllIds().call().then((id) => {
+        const tab = []
+        id.map((x) => {
+          contract.methods.articleTitle(x).call().then((k, v) => {
 
-          tab.push(k)
-          setArticles([...tab])
+            tab.push(k)
+            setArticles([...tab])
+          })
+
         })
-
       })
-    })
-  }, [])
+    }
+  }, [contract])
 
 
   function findArticle() {
