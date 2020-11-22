@@ -50,7 +50,7 @@ contract Wikipedia {
     }
 
     function updateArticle(uint256 index,string memory content) public returns (bool) {
-        string memory title = articlesById[index].title;
+        string storage title = articlesById[index].title;
         Article memory newArticle = Article(title, content);
         articlesById[index] = newArticle;
         return true;

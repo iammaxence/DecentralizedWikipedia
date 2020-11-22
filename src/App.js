@@ -63,19 +63,18 @@ const ArticleRechercher = ({ idArticle }) => {
 
 
   function updateContentArticle() {
-    console.log("test")
     setUpdateMode(!updateMode)
   }
 
-  function validateUpdate() {
+  //Async/await => J'attend que la transaction ai lieu avant de re-render mon composant avec le setContent
+  async function validateUpdate() {
     let nouvelleValeur = document.getElementById("changeUpdate").value
-    setContent(nouvelleValeur)
-    console.log(nouvelleValeur)
-    contract.methods.updateArticle(idArticle, nouvelleValeur).send(function(error, result) {
-      if (error.message.includes("User denied transaction signature")) {
+    await contract.methods.updateArticle(idArticle, nouvelleValeur).send(function(error, result) {
+      if (error) {
         console.log("Transaction denied by the user")
       }});
     setUpdateMode(false)
+    setContent(nouvelleValeur);
   }
 
   if (updateMode == false) {
@@ -96,7 +95,7 @@ const ArticleRechercher = ({ idArticle }) => {
         <div>
           <h3>{myarticletitle}</h3>
         </div>
-        <input id="changeUpdate" type="text" defaultValue={myarticlecontent} />
+        <textarea className="form-control" id="changeUpdate" type="text" defaultValue={myarticlecontent} />
         <button onClick={validateUpdate}>O</button>
         <button onClick={updateContentArticle}>X</button>
       </div>
@@ -121,7 +120,7 @@ const NewArticle = () => {
     var abi = contract.methods.addArticle(title.value, contenue.value).encodeABI();
     //temporaire: C'est le client 1 qui fait la transaction. On veux que ce soit l'utilisateur courant
     contract.methods.addArticle(title.value, contenue.value).send(function(error, result) {
-      if (error.message.includes("User denied transaction signature")) {
+      if (error) {
         console.log("Transaction denied by the user")
       }});
     console.log("Operation d'ajout est un succès");
