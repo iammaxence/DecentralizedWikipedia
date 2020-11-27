@@ -219,7 +219,7 @@ const AllArticles = ({ sendDataToParent }) => {
 
   function findArticle() {
     numId = document.getElementById("myid");
-    if(isNaN(numId.value)){ //On verifie si on entre bien un nombre
+    if(isNaN(numId.value)) { //On verifie si on entre bien un nombre
       alert("Il faut entrer un nombre")
     }
     else {
