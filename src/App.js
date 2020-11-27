@@ -10,7 +10,7 @@ import ContractInterface from './build/contracts/Wikipedia.json'
 import Web3 from 'web3';
 
 
-// Précédemment utilisé
+// Précédemment utilisé (Je garde pour explications)
 const MonContratWiki = () => {
   if (window.ethereum) { // Check si le lien avec Metamask existe (Si notre navigateur est connecté à une blockchain)
     //console.log(Web3.givenProvider); // Crée un lien avec metamask. On peut aussi mettre l'adresse local si on a pas metamastk  : localhost:3000
@@ -26,6 +26,10 @@ const MonContratWiki = () => {
 
 }
 
+/**
+ * 
+ * Composant de recherche d'un article
+ */
 
 const ArticleRechercher = ({ idArticle }) => {
 
@@ -175,6 +179,9 @@ const NewArticle = () => {
 
 }
 
+/**
+ * Composant Home
+ */
 
 const Home = () => {
   return (
@@ -187,7 +194,10 @@ const Home = () => {
 }
 
 
-
+/**
+ * 
+ * Composant AllArticle : Affiche tous les articles contenu dans notre blockchain
+ */
 
 const AllArticles = ({ sendDataToParent }) => {
   
@@ -262,25 +272,20 @@ const AllArticles = ({ sendDataToParent }) => {
     )
   }
 
-  //------------------Truc du prof ------------------------//
-
-  // const [articles, setArticles] = useState([])
-  // //const contract = useSelector(({contract}) => contract)
-  // useEffect(() => {
-  //   if (contract) {
-  //     contract.methods.articleContent(0).call().then(console.log)
-  //     contract.methods.getAllIds().call().then(console.log)
-  //   }
-  //   else
-  //     console.log("Nothing found you")
-  // }, [contract, setArticles])
-  // return <div>{articles.map(article => article)}</div>
 
 }
+
+/**
+ * Composant NotFound : Si aucune route n'est trouvé
+ */
 
 const NotFound = () => {
   return <div>Not found</div>
 }
+
+/**
+ * Composant de base : Permet de naviguer entre les pages
+ */
 
 const App = () => {
 
