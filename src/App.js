@@ -34,9 +34,26 @@ const MonContratWiki = () => {
 const ArticleRechercher = ({ idArticle }) => {
 
   const contract = useSelector(({ contract }) => contract)
-  const [myarticletitle, setTitle] = useState(null);
+  const [myarticletitle, setTitle] = useState(null)
   const [myarticlecontent, setContent] = useState(null)
+  const [historyList, setHistoryList] = useState([])
   let [updateMode, setUpdateMode] = useState(false)
+  
+  // On récupere l'historique des modification de l'article que l'on stock dans historyList
+  useEffect(() => {
+    if (contract){
+      contract.methods.getHistoryLength(idArticle).call().then(length => {
+        var tab = []
+        for (var i = 0; i < length; i++) {
+          contract.methods.historyContent(idArticle, i).call().then(content => {
+            tab.push(content)
+            console.log(content)
+            setHistoryList([...tab])
+          })
+        }
+      })  
+    }
+  }, [contract])
 
   //Cas où l'utilisateur entre l'url à la main : Pour corriger ça : Crée un ProtectedRoot pour qu'aucun utilisateur puisse y accéder à la main
   if (idArticle == null) {
@@ -75,7 +92,8 @@ const ArticleRechercher = ({ idArticle }) => {
   async function validateUpdate() {
     let nouvelleValeur = document.getElementById("changeUpdate").value
     try{
-      await contract.methods.updateArticle(idArticle, nouvelleValeur).send((error, result) => {
+      const date = new Date().toUTCString()
+      await contract.methods.updateArticle(idArticle, nouvelleValeur, date).send((error, result) => {
         if (error) {
           console.log("Transaction denied by the user")
         }
@@ -84,10 +102,21 @@ const ArticleRechercher = ({ idArticle }) => {
       console.log("Transaction rejected")
     }
     setUpdateMode(false)
-    
   }
 
   if (updateMode === false) {
+
+    const display = historyList != null 
+    let history = ""
+    
+    if (display){
+      for (var content in historyList){
+        history = historyList.map((content, i) => <li key={i}> {content} </li>)
+      }
+    } else {
+      history = <p> No history </p>
+    }
+
     return (
       <div>
         <div>
@@ -95,6 +124,14 @@ const ArticleRechercher = ({ idArticle }) => {
         </div>
         <div id="theContentArticle" onDoubleClick={updateContentArticle} >
           {myarticlecontent}
+        </div>
+        <div>
+          <h3>
+            History
+          </h3>
+          <div>
+            {history}
+          </div>
         </div>
       </div>
     )
@@ -133,7 +170,8 @@ const NewArticle = () => {
 
     //On crée un article : Pour crée un article, on effectue une transaction payante
     try{
-      await contract.methods.addArticle(title.value, contenue.value).send(function (error, result) {
+      const date = new Date().toUTCString()
+      await contract.methods.addArticle(title.value, contenue.value, date).send(function (error, result) {
         if (error) {
           console.log("Transaction denied by the user")
         }
